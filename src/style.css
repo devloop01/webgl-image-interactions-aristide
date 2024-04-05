@@ -1,0 +1,55 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: "Roboto", sans-serif;
+  display: grid;
+  place-items: center;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+figure {
+  /* width: min(32vw, 52vh); */
+  height: min(100vh, 100vw);
+  aspect-ratio: 2 / 3;
+  opacity: 0;
+  pointer-events: none;
+
+  & > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 0.5rem;
+}
+
+canvas {
+  display: block;
+
+  &.gl {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: -1;
+  }
+}
