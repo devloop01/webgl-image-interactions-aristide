@@ -1,7 +1,7 @@
 import { Plane as BasePlane, Program, Mesh, Texture } from "ogl";
 
 import { Gl } from "./index";
-import { demo1, demo2, demo3 } from "./Plane.shader";
+import { demo3 } from "./Plane.shader";
 
 export type PlaneOptions = {
   domElement: HTMLElement;
