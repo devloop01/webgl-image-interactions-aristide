@@ -1,15 +1,13 @@
 import { Plane as BasePlane, Program, Mesh, Texture } from "ogl";
 
 import { Gl } from "./index";
-import { demo1, demo2, demo3 } from "./Plane.shader";
-import { clamp } from "@/math";
+import * as demos from "./Plane.shader";
+import { clamp, lerp } from "@/math";
 
 export type PlaneOptions = {
   domElement: HTMLElement;
   demoIndex: number;
 };
-
-const demos = [demo1, demo2, demo3];
 
 export class Plane {
   gl: Gl;
@@ -42,12 +40,13 @@ export class Plane {
       uDepth: { value: new Texture(this.gl.ctx) },
       uResolution: { value: [0, 0] },
       uSize: { value: [1, 1] },
+      uPeekRadius: { value: 0.1 },
     };
 
     this.geometry = new BasePlane(this.gl.ctx);
     this.program = new Program(this.gl.ctx, {
       uniforms: this.uniforms,
-      ...demos[options.demoIndex],
+      ...Object.values(demos)[options.demoIndex],
     });
 
     this.mesh = new Mesh(this.gl.ctx, {
@@ -63,11 +62,13 @@ export class Plane {
   update() {
     // this.uniforms.uTime.value += 1 / 60;
 
-    // if (this.gl.intersect.objectId === this.mesh.id) {
+    if (this.gl.intersect.objectId === this.mesh.id) {
+      this.uniforms.uPeekRadius.value = lerp(this.uniforms.uPeekRadius.value, 0.15, 0.1);
+    } else {
+      this.uniforms.uPeekRadius.value = lerp(this.uniforms.uPeekRadius.value, 1, 0.05);
+    }
+
     this.uniforms.uMouse.value = this.gl.intersect.point;
-    // } else {
-    //   this.uniforms.uMouse.value = this.gl.mouse.current;
-    // }
 
     if (this.options.demoIndex === 2) this.updateDataTexture();
   }

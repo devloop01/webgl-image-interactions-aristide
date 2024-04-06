@@ -79,6 +79,8 @@ export class Gl {
         this.intersect.objectId = object.id;
         this.intersect.point.set(x, y);
       }
+    } else {
+      this.intersect.objectId = null;
     }
 
     this.renderer.render({ scene: this.scene, camera: this.camera });

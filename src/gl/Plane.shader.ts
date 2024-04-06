@@ -26,6 +26,7 @@ const fragmentHead = /*glsl*/ `
     uniform sampler2D uDepth;
     uniform vec2 uResolution;
     uniform vec2 uSize;
+    uniform float uPeekRadius;
 
     vec2 backgroundCoverUv(vec2 screenSize, vec2 imageSize, vec2 uv) {
       float screenRatio = screenSize.x / screenSize.y;
@@ -36,7 +37,7 @@ const fragmentHead = /*glsl*/ `
     }
 `;
 
-export const demo1 = {
+export const demo0 = {
   vertex,
   fragment: /*glsl*/ `
         ${fragmentHead}
@@ -68,7 +69,7 @@ export const demo1 = {
 
 // ---------------------------------------------
 
-export const demo2 = {
+export const demo1 = {
   vertex,
   fragment: /*glsl*/ `
           ${fragmentHead}
@@ -97,7 +98,7 @@ export const demo2 = {
 
 // ---------------------------------------------
 
-export const demo3 = {
+export const demo2 = {
   vertex,
   fragment: /*glsl*/ `
           ${fragmentHead}
@@ -114,6 +115,34 @@ export const demo3 = {
               vec3 finalTex = texture2D(uTexture, coverUV - 0.02 * offset.rg).rgb;
 
               gl_FragColor = vec4(finalTex, 1.0);
+          }
+        `,
+};
+
+// ---------------------------------------------
+
+export const demo3 = {
+  vertex,
+  fragment: /*glsl*/ `
+          ${fragmentHead}
+
+          void main() {
+              vec2 aspect = uResolution / max(uResolution.x, uResolution.y);
+              vec2 uv = (vUv - 0.5) * aspect;
+              vec2 mouse = uMouse * aspect;
+
+              float r = uPeekRadius;
+              float d = length(uv - mouse);
+              d = smoothstep(r, r*1.2, d);
+
+              vec2 coverUV = backgroundCoverUv(uSize, uResolution, vUv);
+              vec3 tex = texture2D(uTexture, coverUV).rgb;
+
+              vec3 color = vec3(0.0);
+              color = tex;
+              color = mix(color, vec3(0.0), d);
+
+              gl_FragColor = vec4(color, 1.0);
           }
         `,
 };
