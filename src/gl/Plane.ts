@@ -1,7 +1,8 @@
-import { Plane as BasePlane, Program, Mesh, Texture } from "ogl";
+import { Plane as BasePlane, Program, Mesh, Texture, Box } from "ogl";
 
 import { Gl } from "./index";
 import { demo3 } from "./Plane.shader";
+import { clamp } from "@/math";
 
 export type PlaneOptions = {
   domElement: HTMLElement;
@@ -17,6 +18,13 @@ export class Plane {
   program: Program;
   mesh: Mesh;
   elementBounds: DOMRect;
+
+  settings = {
+    gridSize: 18,
+    mouseSize: 0.2,
+    strength: 0.1,
+    relaxation: 0.9,
+  };
 
   constructor(gl: Gl, options: PlaneOptions) {
     this.gl = gl;
@@ -46,11 +54,52 @@ export class Plane {
     this.mesh.setParent(this.gl.scene);
 
     this.loadTextures();
+    this.createDataTexture();
   }
 
   update() {
     // this.uniforms.uTime.value += 1 / 60;
+
+    // if (this.gl.intersect.objectId === this.mesh.id) {
     this.uniforms.uMouse.value = this.gl.intersect.point;
+    // } else {
+    //   this.uniforms.uMouse.value = this.gl.mouse.current;
+    // }
+
+    this.updateDataTexture();
+  }
+
+  updateDataTexture() {
+    const data = this.uniforms.uDataTexture.value.image;
+
+    for (let i = 0; i < data.length; i += 3) {
+      data[i] *= this.settings.relaxation;
+      data[i + 1] *= this.settings.relaxation;
+    }
+
+    let gridMouseX = this.settings.gridSize * (this.gl.mouse.current.x + 0.5);
+    let gridMouseY = this.settings.gridSize * (1 - (this.gl.mouse.current.y + 0.5));
+    let maxDist = this.settings.gridSize * this.settings.mouseSize;
+    let aspect = this.gl.canvas.height / this.gl.canvas.width;
+
+    for (let i = 0; i < this.settings.gridSize; i++) {
+      for (let j = 0; j < this.settings.gridSize; j++) {
+        let distance = (gridMouseX - i) ** 2 / aspect + (gridMouseY - j) ** 2;
+        let maxDistSq = maxDist ** 2;
+
+        if (distance < maxDistSq) {
+          let index = 3 * (i + this.settings.gridSize * j);
+
+          let power = maxDist / Math.sqrt(distance);
+          power = clamp(power, 0, 10);
+
+          data[index] += this.settings.strength * 100 * this.gl.mouse.velocity.x * power;
+          data[index + 1] -= this.settings.strength * 100 * this.gl.mouse.velocity.y * power;
+        }
+      }
+    }
+
+    this.uniforms.uDataTexture.value.needsUpdate = true;
   }
 
   loadTextures() {
@@ -78,6 +127,30 @@ export class Plane {
         this.uniforms.uDepth.value.image = img;
       };
     }
+  }
+
+  createDataTexture() {
+    const width = this.settings.gridSize;
+    const height = this.settings.gridSize;
+
+    const size = width * height;
+    const data = new Float32Array(3 * size);
+
+    const texture = new Texture(this.gl.ctx, {
+      image: data,
+      width,
+      height,
+      // @ts-ignore
+      internalFormat: this.gl.ctx.RGB16F,
+      format: this.gl.ctx.RGB,
+      type: this.gl.ctx.FLOAT,
+      magFilter: this.gl.ctx.NEAREST,
+      minFilter: this.gl.ctx.NEAREST,
+      generateMipmaps: false,
+    });
+
+    this.uniforms["uDataTexture"] = { value: texture };
+    this.uniforms["uDataTexture"].value.needsUpdate = true;
   }
 
   resize() {

@@ -21,6 +21,7 @@ const fragmentHead = /*glsl*/ `
     uniform float uTime;
     uniform vec2 uMouse;
     uniform sampler2D uTexture;
+    uniform sampler2D uDataTexture;
     uniform sampler2D uNormal;
     uniform sampler2D uDepth;
     uniform vec2 uResolution;
@@ -105,8 +106,14 @@ export const demo3 = {
               vec2 aspect = uResolution / max(uResolution.x, uResolution.y);
               vec2 uv = (vUv - 0.5) * aspect;
               vec2 mouse = uMouse * aspect;
-              vec3 tex = texture2D(uTexture, backgroundCoverUv(uSize, uResolution, vUv)).rgb;
-              gl_FragColor = vec4(tex, 1.0);
+
+              vec2 coverUV = backgroundCoverUv(uSize, uResolution, vUv);
+              vec3 tex = texture2D(uTexture, coverUV).rgb;
+              vec3 offset = texture2D(uDataTexture, coverUV).rgb;
+
+              vec3 finalTex = texture2D(uTexture, coverUV - 0.02 * offset.rg).rgb;
+
+              gl_FragColor = vec4(finalTex, 1.0);
           }
         `,
 };
