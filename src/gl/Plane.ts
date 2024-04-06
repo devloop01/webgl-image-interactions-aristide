@@ -1,7 +1,7 @@
 import { Plane as BasePlane, Program, Mesh, Texture } from "ogl";
 
 import { Gl } from "./index";
-import { demo1, demo2 } from "./Plane.shader";
+import { demo1, demo2, demo3 } from "./Plane.shader";
 
 export type PlaneOptions = {
   domElement: HTMLElement;
@@ -36,7 +36,7 @@ export class Plane {
     this.geometry = new BasePlane(this.gl.ctx);
     this.program = new Program(this.gl.ctx, {
       uniforms: this.uniforms,
-      ...demo2,
+      ...demo3,
     });
 
     this.mesh = new Mesh(this.gl.ctx, {
