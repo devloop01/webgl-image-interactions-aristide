@@ -1,6 +1,7 @@
 import { Plane as BasePlane, Program, Mesh, Texture } from "ogl";
 
 import { Gl } from "./index";
+import { demo1, demo2 } from "./Plane.shader";
 
 export type PlaneOptions = {
   domElement: HTMLElement;
@@ -27,6 +28,7 @@ export class Plane {
       uMouse: { value: [0, 0] },
       uTexture: { value: new Texture(this.gl.ctx) },
       uNormal: { value: new Texture(this.gl.ctx) },
+      uDepth: { value: new Texture(this.gl.ctx) },
       uResolution: { value: [0, 0] },
       uSize: { value: [1, 1] },
     };
@@ -34,54 +36,7 @@ export class Plane {
     this.geometry = new BasePlane(this.gl.ctx);
     this.program = new Program(this.gl.ctx, {
       uniforms: this.uniforms,
-      vertex: `
-        attribute vec3 position;
-        attribute vec2 uv;
-
-        uniform mat4 modelViewMatrix;
-        uniform mat4 projectionMatrix;
-
-        varying vec2 vUv;
-
-        void main() {
-          vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragment: `
-        precision highp float;
-
-        uniform sampler2D uTexture;
-        uniform sampler2D uNormal;
-        uniform vec2 uMouse;
-        uniform vec2 uResolution;
-
-        varying vec2 vUv;
-
-        void main() {
-            vec3 tex = texture2D(uTexture, vUv).rgb;
-            vec3 normal = texture2D(uNormal, vUv).rgb * 2.0 - 1.0;
-            normal = normalize(normal);
-
-            vec2 aspect = uResolution / max(uResolution.x, uResolution.y);
-            vec2 uv = (vUv - 0.5) * aspect;
-            vec2 mouse = uMouse * aspect;
-
-            vec3 lightPosition = vec3(uv-mouse, 0.0);
-            vec3 lightDirection = normalize(vec3(lightPosition.xy, .5));
-
-            float intensity = max(dot(normal, lightDirection), 0.0);
-            intensity = pow(intensity, 3.0);
-
-            vec3 diffuse = tex.rgb*intensity;
-            vec3 ambientColor = vec3(.2);
-            vec3 diffuseAmbient = tex.rgb*ambientColor;
-            vec3 finalDiffuse = diffuse+diffuseAmbient;
-
-            gl_FragColor = vec4(finalDiffuse, 1.0);
-
-        }
-      `,
+      ...demo2,
     });
 
     this.mesh = new Mesh(this.gl.ctx, {
@@ -113,6 +68,14 @@ export class Plane {
       img.src = this.domElement.getAttribute("data-normal-src")!;
       img.onload = () => {
         this.uniforms.uNormal.value.image = img;
+      };
+    }
+
+    {
+      const img = new Image();
+      img.src = this.domElement.getAttribute("data-depth-src")!;
+      img.onload = () => {
+        this.uniforms.uDepth.value.image = img;
       };
     }
   }
