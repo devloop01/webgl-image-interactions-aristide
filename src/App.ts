@@ -2,12 +2,14 @@ import { Gl } from "@/gl";
 import { Plane } from "@/gl/Plane";
 
 export class App {
+  demoIndex: number;
   dom: Record<string, HTMLElement>;
   rafId: number;
   glObjects: any[];
   gl: Gl;
 
   constructor() {
+    this.demoIndex = parseInt(document.documentElement.getAttribute("data-demoIndex") || "0");
     this.dom = {
       canvas: document.querySelector("canvas.gl")!,
       img: document.querySelector("figure > img")!,
@@ -16,9 +18,6 @@ export class App {
     this.glObjects = [];
 
     this.init();
-
-    //
-    console.log(this.dom);
   }
 
   init() {
@@ -34,6 +33,7 @@ export class App {
   createGlObjects() {
     const plane = new Plane(this.gl, {
       domElement: this.dom.img,
+      demoIndex: this.demoIndex,
     });
     this.glObjects.push(plane);
   }

@@ -1,3 +1,12 @@
+/* font faces */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/inter-var-latin.woff2") format("woff2");
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -12,7 +21,7 @@ body {
 
 body {
   overflow: hidden;
-  font-family: "Roboto", sans-serif;
+  font-family: "Inter", sans-serif;
   display: grid;
   place-items: center;
 }
@@ -23,7 +32,8 @@ a {
 }
 
 figure {
-  /* width: min(32vw, 52vh); */
+  /* width: 100vw; */
+  /* height: 100vh; */
   height: min(95vh, 95vw);
   aspect-ratio: 2 / 3;
   opacity: 0;
@@ -33,6 +43,30 @@ figure {
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+}
+
+nav {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 0.5rem;
+  display: grid;
+  gap: 0.25rem;
+
+  & > a {
+    font-size: 1rem;
+    font-weight: 500;
+    opacity: 1;
+    transition: opacity 0.2s;
+
+    &:not([data-active]) {
+      opacity: 0.3;
+    }
+
+    &:hover {
+      opacity: 0.75;
+    }
   }
 }
 

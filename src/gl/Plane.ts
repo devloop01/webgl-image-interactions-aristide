@@ -1,12 +1,15 @@
-import { Plane as BasePlane, Program, Mesh, Texture, Box } from "ogl";
+import { Plane as BasePlane, Program, Mesh, Texture } from "ogl";
 
 import { Gl } from "./index";
-import { demo3 } from "./Plane.shader";
+import { demo1, demo2, demo3 } from "./Plane.shader";
 import { clamp } from "@/math";
 
 export type PlaneOptions = {
   domElement: HTMLElement;
+  demoIndex: number;
 };
+
+const demos = [demo1, demo2, demo3];
 
 export class Plane {
   gl: Gl;
@@ -44,7 +47,7 @@ export class Plane {
     this.geometry = new BasePlane(this.gl.ctx);
     this.program = new Program(this.gl.ctx, {
       uniforms: this.uniforms,
-      ...demo3,
+      ...demos[options.demoIndex],
     });
 
     this.mesh = new Mesh(this.gl.ctx, {
@@ -66,7 +69,7 @@ export class Plane {
     //   this.uniforms.uMouse.value = this.gl.mouse.current;
     // }
 
-    this.updateDataTexture();
+    if (this.options.demoIndex === 2) this.updateDataTexture();
   }
 
   updateDataTexture() {
