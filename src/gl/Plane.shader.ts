@@ -27,7 +27,7 @@ const simplex3d = /*glsl*/ `
     return 1.79284291400159 - 0.85373472095314 * r;
   }
 
-  float snoise3(vec3 v)
+  float snoise(vec3 v)
     {
       const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
       const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
@@ -126,6 +126,7 @@ const fragmentHead = /*glsl*/ `
 
     uniform sampler2D uTexture;
     uniform sampler2D uTexture2;
+    uniform sampler2D uNoiseTexture;
     uniform sampler2D uDataTexture;
     uniform sampler2D uFlow;
 
@@ -136,6 +137,7 @@ const fragmentHead = /*glsl*/ `
 
     uniform float uTime;
     uniform float uPeekRadius;
+    uniform float uHoverProgress;
 
     vec2 backgroundCoverUv(vec2 screenSize, vec2 imageSize, vec2 uv) {
       float screenRatio = screenSize.x / screenSize.y;
@@ -155,6 +157,7 @@ const fragmentHead = /*glsl*/ `
     }
 
     ${simplex3d}
+
 `;
 
 export const demo0 = {
@@ -300,7 +303,7 @@ export const demo5 = {
               float time = uTime * 0.05;
               float offX = uv.x + sin(uv.y + time * 2.);
               float offY = uv.y - time * .5 - cos(time * 2.) * .5;
-              float n = (snoise3(vec3(offX, offY, time * .5) * 15.));
+              float n = (snoise(vec3(offX, offY, time * .5) * 15.));
 
               float mask = smoothstep(.98, 1., pow(c, 2.) * 4. + n);
               vec3 final = mix(gs, tex, mask);
@@ -321,11 +324,15 @@ export const demo6 = {
               vec2 aspect = uResolution / max(uResolution.x, uResolution.y);
               vec2 uv = (vUv - 0.5) * aspect;
               vec2 mouse = uLerpedMouse * aspect;
-
               vec2 coverUV = backgroundCoverUv(uSize, uResolution, vUv);
-              vec3 tex = texture2D(uTexture, coverUV).rgb;
+
+              float c = length(uv-mouse)+(1.-uHoverProgress);
+              c = clamp(c, 0., 1.);
+              vec2 noise = texture2D(uNoiseTexture, uv * 10.0).xy * mix(0.02, 0.04, uHoverProgress);
+              vec2 glassyUV = coverUV + noise * c;
+              vec3 tex = texture2D(uTexture, glassyUV).rgb;
 
               gl_FragColor = vec4(tex, 1.0);
-          }
+            }
         `,
 };

@@ -51,9 +51,16 @@ export class Plane {
       uLerpedMouse: { value: [0, 0] },
       uTexture: { value: new Texture(this.gl.ctx) },
       uTexture2: { value: new Texture(this.gl.ctx) },
+      uNoiseTexture: {
+        value: new Texture(this.gl.ctx, {
+          wrapS: this.gl.ctx.REPEAT,
+          wrapT: this.gl.ctx.REPEAT,
+        }),
+      },
       uResolution: { value: [0, 0] },
       uSize: { value: [1, 1] },
       uPeekRadius: { value: 1 },
+      uHoverProgress: { value: 0 },
     };
 
     this.geometry = new BasePlane(this.gl.ctx);
@@ -86,11 +93,13 @@ export class Plane {
       this.mouse.previous.copy(this.mouse.current);
 
       this.uniforms.uPeekRadius.value = lerp(this.uniforms.uPeekRadius.value, 0.1, 0.15);
+      this.uniforms.uHoverProgress.value = lerp(this.uniforms.uHoverProgress.value, 1, 0.05);
     } else {
       this.mouse.current.set(-1);
       this.mouse.velocity.set(0);
 
       this.uniforms.uPeekRadius.value = lerp(this.uniforms.uPeekRadius.value, 10.0, 0.015);
+      this.uniforms.uHoverProgress.value = lerp(this.uniforms.uHoverProgress.value, 0, 0.05);
     }
 
     this.uniforms.uMouse.value = this.gl.intersect.point;
@@ -187,6 +196,14 @@ export class Plane {
       img.src = this.domElement.getAttribute("data-src2")!;
       img.onload = () => {
         this.uniforms.uTexture2.value.image = img;
+      };
+    }
+
+    {
+      const img = new Image();
+      img.src = "/images/rgba-noise-64x64.png";
+      img.onload = () => {
+        this.uniforms.uNoiseTexture.value.image = img;
       };
     }
   }
