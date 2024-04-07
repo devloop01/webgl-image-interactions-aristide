@@ -32,8 +32,6 @@ a {
 }
 
 figure {
-  /* width: 100vw; */
-  /* height: 100vh; */
   height: min(95vh, 95vw);
   aspect-ratio: 2 / 3;
   opacity: 0;

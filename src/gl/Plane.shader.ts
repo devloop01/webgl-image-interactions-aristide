@@ -165,13 +165,14 @@ export const demo0 = {
         ${fragmentHead}
 
         void main() {
-            vec3 tex = texture2D(uTexture, vUv).rgb;
-            vec3 normal = texture2D(uTexture2, vUv).rgb * 2.0 - 1.0;
-            normal = normalize(normal);
-
-            vec2 aspect = uResolution / max(uResolution.x, uResolution.y);
+            vec2 aspect = uSize / max(uSize.x, uSize.y);
             vec2 uv = (vUv - 0.5) * aspect;
             vec2 mouse = uLerpedMouse * aspect;
+
+            vec2 coverUV = backgroundCoverUv(uSize, uResolution, vUv);
+            vec3 tex = texture2D(uTexture, coverUV).rgb;
+            vec3 normal = texture2D(uTexture2, coverUV).rgb * 2.0 - 1.0;
+            normal = normalize(normal);
 
             vec3 lightPos = vec3(uv-mouse, 0.0);
             vec3 lightDir = normalize(vec3(lightPos.xy, .6));
@@ -197,10 +198,12 @@ export const demo1 = {
           ${fragmentHead}
 
           void main() {
-              vec2 aspect = uResolution / max(uResolution.x, uResolution.y);
+              vec2 aspect = uSize / max(uSize.x, uSize.y);
+
+              vec2 coverUV = backgroundCoverUv(uSize, uResolution, vUv);
 
               const float zoom = 0.9;
-              vec2 uv = ((vUv-0.5)*zoom)+0.5;
+              vec2 uv = ((coverUV-0.5)*zoom)+0.5;
               vec2 mouse = uLerpedMouse * aspect;
               vec2 offset = (mouse*0.08);
 
@@ -224,11 +227,12 @@ export const demo2 = {
           ${fragmentHead}
 
           void main() {
-              vec2 aspect = uResolution / max(uResolution.x, uResolution.y);
+              vec2 aspect = uSize / max(uSize.x, uSize.y);
+              vec2 uv = vUv * aspect;
               vec2 mouse = uMouse * aspect;
 
               vec2 coverUV = backgroundCoverUv(uSize, uResolution, vUv);
-              vec3 offset = texture2D(uDataTexture, coverUV).rgb;
+              vec3 offset = texture2D(uDataTexture, uv).rgb;
               vec3 tex = texture2D(uTexture, coverUV - 0.02 * offset.rg).rgb;
 
               gl_FragColor = vec4(tex, 1.0);
@@ -244,13 +248,14 @@ export const demo3 = {
           ${fragmentHead}
 
           void main() {
-              vec2 aspect = uResolution / max(uResolution.x, uResolution.y);
+              vec2 aspect = uSize / max(uSize.x, uSize.y);
               vec2 uv = (vUv - 0.5) * aspect;
               vec2 mouse = uLerpedMouse * aspect;
 
+              vec2 coverUV = backgroundCoverUv(uSize, uResolution, vUv);
+
               float c = circle(uv - mouse, uPeekRadius, 0.08);
 
-              vec2 coverUV = backgroundCoverUv(uSize, uResolution, vUv);
               vec3 tex = texture2D(uTexture, coverUV).rgb;
 
               vec3 final = mix(vec3(0.0), tex, c);
@@ -267,7 +272,7 @@ export const demo4 = {
           ${fragmentHead}
 
           void main() {
-              vec2 aspect = uResolution / max(uResolution.x, uResolution.y);
+              vec2 aspect = uSize / max(uSize.x, uSize.y);
               vec2 mouse = uMouse * aspect;
 
               vec3 flow = texture2D(uFlow, vUv).rgb;
@@ -288,7 +293,7 @@ export const demo5 = {
           ${fragmentHead}
 
           void main() {
-              vec2 aspect = uResolution / max(uResolution.x, uResolution.y);
+              vec2 aspect = uSize / max(uSize.x, uSize.y);
               vec2 uv = (vUv - 0.5) * aspect;
               vec2 mouse = uLerpedMouse * aspect;
 
@@ -320,7 +325,7 @@ export const demo6 = {
           ${fragmentHead}
 
           void main() {
-              vec2 aspect = uResolution / max(uResolution.x, uResolution.y);
+              vec2 aspect = uSize / max(uSize.x, uSize.y);
               vec2 uv = (vUv - 0.5) * aspect;
               vec2 mouse = uLerpedMouse * aspect;
               vec2 coverUV = backgroundCoverUv(uSize, uResolution, vUv);
