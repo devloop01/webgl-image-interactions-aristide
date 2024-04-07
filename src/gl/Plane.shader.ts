@@ -174,13 +174,13 @@ export const demo0 = {
             vec2 mouse = uLerpedMouse * aspect;
 
             vec3 lightPos = vec3(uv-mouse, 0.0);
-            vec3 lightDir = normalize(vec3(lightPos.xy, .5));
+            vec3 lightDir = normalize(vec3(lightPos.xy, .6));
 
             float intensity = max(dot(normal, lightDir), 0.0);
-            intensity = pow(intensity, 3.0);
+            intensity = pow(intensity, 2.0);
 
             vec3 diffuse = tex.rgb*intensity;
-            vec3 ambientColor = vec3(.2);
+            vec3 ambientColor = vec3(.4);
             vec3 diffuseAmbient = tex.rgb*ambientColor;
             vec3 finalDiffuse = diffuse+diffuseAmbient;
 
