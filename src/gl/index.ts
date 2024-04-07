@@ -33,7 +33,7 @@ export class Gl {
 
     this.scene = new Transform();
 
-    this.mouse = new Vec2();
+    this.mouse = new Vec2(-1, -1);
     this.raycaster = new Raycast();
     this.intersect = {
       objectId: null,
@@ -42,9 +42,10 @@ export class Gl {
   }
 
   updateMouse(x: number, y: number) {
+    // prettier-ignore
     this.mouse.set(
-      2.0 * (x / this.renderer.width) - 1.0,
-      2.0 * (1.0 - y / this.renderer.height) - 1.0,
+        (x / this.renderer.width)  * 2.0 - 1.0,
+       -(y / this.renderer.height) * 2.0 + 1.0,
     );
   }
 
@@ -59,9 +60,10 @@ export class Gl {
 
   render() {
     this.raycaster.castMouse(this.camera, this.mouse);
-    const hits = this.raycaster.intersectBounds(this.scene.children as any[]);
-    if (hits.length) {
-      const object = hits[0];
+
+    const intersects = this.raycaster.intersectBounds(this.scene.children as any[]);
+    if (intersects.length) {
+      const object = intersects[0];
       const point = object.hit?.localPoint;
       if (point) {
         const [x, y] = point;

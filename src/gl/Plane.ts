@@ -24,7 +24,7 @@ export class Plane {
 
   flowmap: Flowmap;
 
-  settings = {
+  pixelDistortSettings = {
     gridSize: 18,
     mouseSize: 0.2,
     strength: 0.3,
@@ -52,9 +52,10 @@ export class Plane {
       uTexture: { value: new Texture(this.gl.ctx) },
       uNormal: { value: new Texture(this.gl.ctx) },
       uDepth: { value: new Texture(this.gl.ctx) },
+      uBlurred: { value: new Texture(this.gl.ctx) },
       uResolution: { value: [0, 0] },
       uSize: { value: [1, 1] },
-      uPeekRadius: { value: 0.15 },
+      uPeekRadius: { value: 1 },
     };
 
     this.geometry = new BasePlane(this.gl.ctx);
@@ -75,9 +76,9 @@ export class Plane {
   }
 
   update() {
-    this.lerpedMouse.current.lerp(this.gl.intersect.point, 0.1);
+    this.lerpedMouse.current.lerp(this.gl.intersect.point, 0.05);
 
-    this.uniforms.uTime.value += 1 / 120;
+    this.uniforms.uTime.value += 0.01;
 
     if (this.gl.intersect.objectId === this.mesh.id) {
       const p = this.gl.intersect.point;
@@ -86,11 +87,12 @@ export class Plane {
       this.mouse.velocity.copy(this.mouse.current.clone().sub(this.mouse.previous));
       this.mouse.previous.copy(this.mouse.current);
 
-      this.uniforms.uPeekRadius.value = lerp(this.uniforms.uPeekRadius.value, 0.15, 0.1);
+      this.uniforms.uPeekRadius.value = lerp(this.uniforms.uPeekRadius.value, 0.1, 0.15);
     } else {
-      this.uniforms.uPeekRadius.value = lerp(this.uniforms.uPeekRadius.value, 1, 0.05);
       this.mouse.current.set(-1);
       this.mouse.velocity.set(0);
+
+      this.uniforms.uPeekRadius.value = lerp(this.uniforms.uPeekRadius.value, 10.0, 0.015);
     }
 
     this.uniforms.uMouse.value = this.gl.intersect.point;
@@ -140,28 +142,29 @@ export class Plane {
     const data = this.uniforms.uDataTexture.value.image;
 
     for (let i = 0; i < data.length; i += 3) {
-      data[i] *= this.settings.relaxation;
-      data[i + 1] *= this.settings.relaxation;
+      data[i] *= this.pixelDistortSettings.relaxation;
+      data[i + 1] *= this.pixelDistortSettings.relaxation;
     }
 
-    let gridMouseX = this.settings.gridSize * (this.mouse.current.x + 0.5);
-    let gridMouseY = this.settings.gridSize * (1 - (this.mouse.current.y + 0.5));
-    let maxDist = this.settings.gridSize * this.settings.mouseSize;
+    let gridMouseX = this.pixelDistortSettings.gridSize * (this.mouse.current.x + 0.5);
+    let gridMouseY = this.pixelDistortSettings.gridSize * (1 - (this.mouse.current.y + 0.5));
+    let maxDist = this.pixelDistortSettings.gridSize * this.pixelDistortSettings.mouseSize;
     let aspect = this.gl.canvas.height / this.gl.canvas.width;
 
-    for (let i = 0; i < this.settings.gridSize; i++) {
-      for (let j = 0; j < this.settings.gridSize; j++) {
+    for (let i = 0; i < this.pixelDistortSettings.gridSize; i++) {
+      for (let j = 0; j < this.pixelDistortSettings.gridSize; j++) {
         let distance = (gridMouseX - i) ** 2 / aspect + (gridMouseY - j) ** 2;
         let maxDistSq = maxDist ** 2;
 
         if (distance < maxDistSq) {
-          let index = 3 * (i + this.settings.gridSize * j);
+          let index = 3 * (i + this.pixelDistortSettings.gridSize * j);
 
           let power = maxDist / Math.sqrt(distance);
           power = clamp(power, 0, 10);
 
-          data[index] += this.settings.strength * 100 * this.mouse.velocity.x * power;
-          data[index + 1] -= this.settings.strength * 100 * this.mouse.velocity.y * power;
+          data[index] += this.pixelDistortSettings.strength * 100 * this.mouse.velocity.x * power;
+          data[index + 1] -=
+            this.pixelDistortSettings.strength * 100 * this.mouse.velocity.y * power;
         }
       }
     }
@@ -194,11 +197,19 @@ export class Plane {
         this.uniforms.uDepth.value.image = img;
       };
     }
+
+    {
+      const img = new Image();
+      img.src = this.domElement.getAttribute("data-blurred-src")!;
+      img.onload = () => {
+        this.uniforms.uBlurred.value.image = img;
+      };
+    }
   }
 
   createDataTexture() {
-    const width = this.settings.gridSize;
-    const height = this.settings.gridSize;
+    const width = this.pixelDistortSettings.gridSize;
+    const height = this.pixelDistortSettings.gridSize;
 
     const size = width * height;
     const data = new Float32Array(3 * size);
