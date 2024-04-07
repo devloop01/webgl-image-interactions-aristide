@@ -228,11 +228,10 @@ export const demo2 = {
 
           void main() {
               vec2 aspect = uSize / max(uSize.x, uSize.y);
-              vec2 uv = vUv * aspect;
               vec2 mouse = uMouse * aspect;
 
               vec2 coverUV = backgroundCoverUv(uSize, uResolution, vUv);
-              vec3 offset = texture2D(uDataTexture, uv).rgb;
+              vec3 offset = texture2D(uDataTexture, coverUV).rgb;
               vec3 tex = texture2D(uTexture, coverUV - 0.02 * offset.rg).rgb;
 
               gl_FragColor = vec4(tex, 1.0);
