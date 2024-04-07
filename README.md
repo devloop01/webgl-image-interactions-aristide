@@ -4,6 +4,8 @@ Inspired by Aristide Benoist's [tweet](https://twitter.com/AristideBenoist/statu
 
 ## References
 
+- [Align DOM and WEBGL](https://mofu-dev.com/en/blog/three-dom-alignment/)
 - [OGL Flowmap](https://oframe.github.io/ogl/examples/?src=mouse-flowmap.html)
 - [Pixel Distortion](https://tympanus.net/codrops/2022/01/12/pixel-distortion-effect-with-three-js/)
-- [Align DOM and WEBGL](https://mofu-dev.com/en/blog/three-dom-alignment/)
+- [Goeey Effect](https://tympanus.net/codrops/2019/10/23/making-gooey-image-hover-effects-with-three-js/)
+- [Glassy Effect](https://www.shadertoy.com/view/WdSGz1)
