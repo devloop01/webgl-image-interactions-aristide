@@ -51,17 +51,19 @@ nav {
   top: 0;
   left: 0;
   padding: 0.5rem;
-  display: grid;
-  gap: 0.25rem;
+  display: flex;
+  gap: 0.5rem;
 
   & > a {
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 500;
     opacity: 1;
     transition: opacity 0.2s;
+    text-decoration: underline;
 
     &:not([data-active]) {
       opacity: 0.3;
+      text-decoration: none;
     }
 
     &:hover {

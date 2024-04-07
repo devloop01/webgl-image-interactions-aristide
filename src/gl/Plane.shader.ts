@@ -18,14 +18,18 @@ const fragmentHead = /*glsl*/ `
 
     varying vec2 vUv;
 
-    uniform float uTime;
-    uniform vec2 uMouse;
     uniform sampler2D uTexture;
     uniform sampler2D uDataTexture;
     uniform sampler2D uNormal;
     uniform sampler2D uDepth;
+    uniform sampler2D uFlow;
+
     uniform vec2 uResolution;
     uniform vec2 uSize;
+    uniform vec2 uMouse;
+    uniform vec2 uLerpedMouse;
+
+    uniform float uTime;
     uniform float uPeekRadius;
 
     vec2 backgroundCoverUv(vec2 screenSize, vec2 imageSize, vec2 uv) {
@@ -49,7 +53,7 @@ export const demo0 = {
 
             vec2 aspect = uResolution / max(uResolution.x, uResolution.y);
             vec2 uv = (vUv - 0.5) * aspect;
-            vec2 mouse = uMouse * aspect;
+            vec2 mouse = uLerpedMouse * aspect;
 
             vec3 lightPosition = vec3(uv-mouse, 0.0);
             vec3 lightDirection = normalize(vec3(lightPosition.xy, .5));
@@ -73,11 +77,11 @@ export const demo1 = {
   vertex,
   fragment: /*glsl*/ `
           ${fragmentHead}
-  
+
           void main() {
               vec2 aspect = uResolution / max(uResolution.x, uResolution.y);
               vec2 uv = (vUv - 0.5) * aspect;
-              vec2 mouse = uMouse * aspect;
+              vec2 mouse = uLerpedMouse * aspect;
 
               float zoom = 0.9;
               vec2 uv0 = ((vUv-0.5)*zoom)+0.5;
@@ -109,12 +113,10 @@ export const demo2 = {
               vec2 mouse = uMouse * aspect;
 
               vec2 coverUV = backgroundCoverUv(uSize, uResolution, vUv);
-              vec3 tex = texture2D(uTexture, coverUV).rgb;
               vec3 offset = texture2D(uDataTexture, coverUV).rgb;
+              vec3 tex = texture2D(uTexture, coverUV - 0.02 * offset.rg).rgb;
 
-              vec3 finalTex = texture2D(uTexture, coverUV - 0.02 * offset.rg).rgb;
-
-              gl_FragColor = vec4(finalTex, 1.0);
+              gl_FragColor = vec4(tex, 1.0);
           }
         `,
 };
@@ -129,7 +131,7 @@ export const demo3 = {
           void main() {
               vec2 aspect = uResolution / max(uResolution.x, uResolution.y);
               vec2 uv = (vUv - 0.5) * aspect;
-              vec2 mouse = uMouse * aspect;
+              vec2 mouse = uLerpedMouse * aspect;
 
               float r = uPeekRadius;
               float d = length(uv - mouse);
@@ -143,6 +145,28 @@ export const demo3 = {
               color = mix(color, vec3(0.0), d);
 
               gl_FragColor = vec4(color, 1.0);
+          }
+        `,
+};
+
+// ---------------------------------------------
+
+export const demo4 = {
+  vertex,
+  fragment: /*glsl*/ `
+          ${fragmentHead}
+
+          void main() {
+              vec2 aspect = uResolution / max(uResolution.x, uResolution.y);
+              vec2 uv = (vUv) * aspect;
+              vec2 mouse = uMouse * aspect;
+
+              vec3 flow = texture2D(uFlow, vUv).rgb;
+              vec2 coverUV = backgroundCoverUv(uSize, uResolution, vUv);
+              coverUV += flow.rg * 0.05;
+              vec3 tex = texture2D(uTexture, coverUV).rgb;
+              // tex = flow * 0.5 + 0.5;
+              gl_FragColor = vec4(tex, 1.0);
           }
         `,
 };

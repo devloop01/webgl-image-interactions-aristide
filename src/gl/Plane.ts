@@ -1,4 +1,4 @@
-import { Plane as BasePlane, Program, Mesh, Texture } from "ogl";
+import { Plane as BasePlane, Program, Mesh, Texture, Flowmap, Vec2 } from "ogl";
 
 import { Gl } from "./index";
 import * as demos from "./Plane.shader";
@@ -13,6 +13,8 @@ export class Plane {
   gl: Gl;
   options: PlaneOptions;
   domElement: HTMLElement;
+  mouse: { current: Vec2; previous: Vec2; velocity: Vec2 };
+  lerpedMouse: { current: Vec2 };
 
   geometry: BasePlane;
   uniforms: Record<string, { value: any }>;
@@ -20,11 +22,13 @@ export class Plane {
   mesh: Mesh;
   elementBounds: DOMRect;
 
+  flowmap: Flowmap;
+
   settings = {
     gridSize: 18,
     mouseSize: 0.2,
-    strength: 0.1,
-    relaxation: 0.9,
+    strength: 0.3,
+    relaxation: 0.95,
   };
 
   constructor(gl: Gl, options: PlaneOptions) {
@@ -32,15 +36,25 @@ export class Plane {
     this.options = options;
     this.domElement = options.domElement;
 
+    this.mouse = {
+      current: new Vec2(),
+      previous: new Vec2(),
+      velocity: new Vec2(),
+    };
+    this.lerpedMouse = {
+      current: new Vec2(),
+    };
+
     this.uniforms = {
       uTime: { value: 0 },
       uMouse: { value: [0, 0] },
+      uLerpedMouse: { value: [0, 0] },
       uTexture: { value: new Texture(this.gl.ctx) },
       uNormal: { value: new Texture(this.gl.ctx) },
       uDepth: { value: new Texture(this.gl.ctx) },
       uResolution: { value: [0, 0] },
       uSize: { value: [1, 1] },
-      uPeekRadius: { value: 0.1 },
+      uPeekRadius: { value: 0.15 },
     };
 
     this.geometry = new BasePlane(this.gl.ctx);
@@ -57,20 +71,69 @@ export class Plane {
 
     this.loadTextures();
     this.createDataTexture();
+    this.createFlowmap();
   }
 
   update() {
-    // this.uniforms.uTime.value += 1 / 60;
+    this.lerpedMouse.current.lerp(this.gl.intersect.point, 0.1);
+
+    this.uniforms.uTime.value += 1 / 120;
 
     if (this.gl.intersect.objectId === this.mesh.id) {
+      const p = this.gl.intersect.point;
+
+      this.mouse.current.copy(p);
+      this.mouse.velocity.copy(this.mouse.current.clone().sub(this.mouse.previous));
+      this.mouse.previous.copy(this.mouse.current);
+
       this.uniforms.uPeekRadius.value = lerp(this.uniforms.uPeekRadius.value, 0.15, 0.1);
     } else {
       this.uniforms.uPeekRadius.value = lerp(this.uniforms.uPeekRadius.value, 1, 0.05);
+      this.mouse.current.set(-1);
+      this.mouse.velocity.set(0);
     }
 
     this.uniforms.uMouse.value = this.gl.intersect.point;
+    this.uniforms.uLerpedMouse.value = this.lerpedMouse.current;
 
     if (this.options.demoIndex === 2) this.updateDataTexture();
+
+    if (this.options.demoIndex === 4) {
+      this.flowmap.mouse.set(this.mouse.current.x + 0.5, this.mouse.current.y + 0.5);
+      this.flowmap.velocity.lerp(
+        this.mouse.velocity.multiply(50),
+        this.mouse.velocity.len() ? 0.5 : 0.1,
+      );
+      this.flowmap.update();
+    }
+  }
+
+  resize() {
+    this.updateMeshSize();
+  }
+
+  updateMeshSize() {
+    this.elementBounds = this.domElement.getBoundingClientRect();
+
+    const dpr = this.gl.renderer.dpr;
+    const w = this.elementBounds.width * dpr;
+    const h = this.elementBounds.height * dpr;
+    const left = this.elementBounds.left * dpr;
+    const top = this.elementBounds.top * dpr;
+
+    // scale the plane to match the element's size
+    this.mesh.scale.set(w, h, 1);
+    this.uniforms.uSize.value = [w, h];
+
+    // position the plane to the element's center
+    this.mesh.position.set(
+      left + w * 0.5 - this.gl.canvas.width * 0.5,
+      -top - h * 0.5 + this.gl.canvas.height * 0.5,
+      0,
+    );
+
+    const aspect = w / h;
+    this.flowmap.aspect = aspect;
   }
 
   updateDataTexture() {
@@ -81,8 +144,8 @@ export class Plane {
       data[i + 1] *= this.settings.relaxation;
     }
 
-    let gridMouseX = this.settings.gridSize * (this.gl.mouse.current.x + 0.5);
-    let gridMouseY = this.settings.gridSize * (1 - (this.gl.mouse.current.y + 0.5));
+    let gridMouseX = this.settings.gridSize * (this.mouse.current.x + 0.5);
+    let gridMouseY = this.settings.gridSize * (1 - (this.mouse.current.y + 0.5));
     let maxDist = this.settings.gridSize * this.settings.mouseSize;
     let aspect = this.gl.canvas.height / this.gl.canvas.width;
 
@@ -97,8 +160,8 @@ export class Plane {
           let power = maxDist / Math.sqrt(distance);
           power = clamp(power, 0, 10);
 
-          data[index] += this.settings.strength * 100 * this.gl.mouse.velocity.x * power;
-          data[index + 1] -= this.settings.strength * 100 * this.gl.mouse.velocity.y * power;
+          data[index] += this.settings.strength * 100 * this.mouse.velocity.x * power;
+          data[index + 1] -= this.settings.strength * 100 * this.mouse.velocity.y * power;
         }
       }
     }
@@ -157,24 +220,11 @@ export class Plane {
     this.uniforms["uDataTexture"].value.needsUpdate = true;
   }
 
-  resize() {
-    this.elementBounds = this.domElement.getBoundingClientRect();
-
-    const dpr = this.gl.renderer.dpr;
-    const w = this.elementBounds.width * dpr;
-    const h = this.elementBounds.height * dpr;
-    const left = this.elementBounds.left * dpr;
-    const top = this.elementBounds.top * dpr;
-
-    // scale the plane to match the element's size
-    this.mesh.scale.set(w, h, 1);
-    this.uniforms.uSize.value = [w, h];
-
-    // position the plane to the element's center
-    this.mesh.position.set(
-      left + w * 0.5 - this.gl.canvas.width * 0.5,
-      -top - h * 0.5 + this.gl.canvas.height * 0.5,
-      0
-    );
+  createFlowmap() {
+    this.flowmap = new Flowmap(this.gl.ctx, {
+      dissipation: 0.95,
+      falloff: 0.25,
+    });
+    this.uniforms["uFlow"] = this.flowmap.uniform;
   }
 }

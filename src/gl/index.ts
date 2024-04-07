@@ -7,7 +7,7 @@ export class Gl {
   ctx: OGLRenderingContext;
   camera: Camera;
   scene: Transform;
-  mouse: { current: Vec2; target: Vec2; previous: Vec2; velocity: Vec2 };
+  mouse: Vec2;
   raycaster: Raycast;
   intersect: { objectId: number | null; point: Vec2 };
 
@@ -33,12 +33,7 @@ export class Gl {
 
     this.scene = new Transform();
 
-    this.mouse = {
-      current: new Vec2(),
-      target: new Vec2(),
-      previous: new Vec2(),
-      velocity: new Vec2(),
-    };
+    this.mouse = new Vec2();
     this.raycaster = new Raycast();
     this.intersect = {
       objectId: null,
@@ -47,9 +42,9 @@ export class Gl {
   }
 
   updateMouse(x: number, y: number) {
-    this.mouse.target.set(
+    this.mouse.set(
       2.0 * (x / this.renderer.width) - 1.0,
-      2.0 * (1.0 - y / this.renderer.height) - 1.0
+      2.0 * (1.0 - y / this.renderer.height) - 1.0,
     );
   }
 
@@ -63,13 +58,7 @@ export class Gl {
   }
 
   render() {
-    this.mouse.current.lerp(this.mouse.target, 0.1);
-
-    this.mouse.velocity.copy(this.mouse.current.clone().sub(this.mouse.previous));
-
-    this.mouse.previous.copy(this.mouse.current);
-
-    this.raycaster.castMouse(this.camera, this.mouse.current);
+    this.raycaster.castMouse(this.camera, this.mouse);
     const hits = this.raycaster.intersectBounds(this.scene.children as any[]);
     if (hits.length) {
       const object = hits[0];
