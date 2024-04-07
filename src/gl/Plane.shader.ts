@@ -309,3 +309,23 @@ export const demo5 = {
           }
         `,
 };
+
+// ---------------------------------------------
+
+export const demo6 = {
+  vertex,
+  fragment: /*glsl*/ `
+          ${fragmentHead}
+
+          void main() {
+              vec2 aspect = uResolution / max(uResolution.x, uResolution.y);
+              vec2 uv = (vUv - 0.5) * aspect;
+              vec2 mouse = uLerpedMouse * aspect;
+
+              vec2 coverUV = backgroundCoverUv(uSize, uResolution, vUv);
+              vec3 tex = texture2D(uTexture, coverUV).rgb;
+
+              gl_FragColor = vec4(tex, 1.0);
+          }
+        `,
+};
