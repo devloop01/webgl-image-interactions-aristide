@@ -125,10 +125,8 @@ const fragmentHead = /*glsl*/ `
     varying vec2 vUv;
 
     uniform sampler2D uTexture;
+    uniform sampler2D uTexture2;
     uniform sampler2D uDataTexture;
-    uniform sampler2D uNormal;
-    uniform sampler2D uDepth;
-    uniform sampler2D uBlurred;
     uniform sampler2D uFlow;
 
     uniform vec2 uResolution;
@@ -166,7 +164,7 @@ export const demo0 = {
 
         void main() {
             vec3 tex = texture2D(uTexture, vUv).rgb;
-            vec3 normal = texture2D(uNormal, vUv).rgb * 2.0 - 1.0;
+            vec3 normal = texture2D(uTexture2, vUv).rgb * 2.0 - 1.0;
             normal = normalize(normal);
 
             vec2 aspect = uResolution / max(uResolution.x, uResolution.y);
@@ -204,7 +202,7 @@ export const demo1 = {
               vec2 mouse = uLerpedMouse * aspect;
               vec2 offset = (mouse*0.08);
 
-              vec3 depth = texture2D(uDepth, uv).rgb;
+              vec3 depth = texture2D(uTexture2, uv).rgb;
               vec3 tex = texture2D(uTexture, uv+offset*depth.r).rgb;
 
               vec3 final = mix(tex, vec3(depth), 0.5);
@@ -294,7 +292,7 @@ export const demo5 = {
 
               vec2 coverUV = backgroundCoverUv(uSize, uResolution, vUv);
               vec3 tex = texture2D(uTexture, coverUV).rgb;
-              vec3 blr = texture2D(uBlurred, coverUV).rgb;
+              vec3 blr = texture2D(uTexture2, coverUV).rgb;
               vec3 gs = vec3(pow(luminance(blr), 2.25));
 
               float c = circle(uv - mouse, uPeekRadius, 2.0);

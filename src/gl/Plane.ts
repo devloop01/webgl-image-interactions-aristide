@@ -50,9 +50,7 @@ export class Plane {
       uMouse: { value: [0, 0] },
       uLerpedMouse: { value: [0, 0] },
       uTexture: { value: new Texture(this.gl.ctx) },
-      uNormal: { value: new Texture(this.gl.ctx) },
-      uDepth: { value: new Texture(this.gl.ctx) },
-      uBlurred: { value: new Texture(this.gl.ctx) },
+      uTexture2: { value: new Texture(this.gl.ctx) },
       uResolution: { value: [0, 0] },
       uSize: { value: [1, 1] },
       uPeekRadius: { value: 1 },
@@ -184,25 +182,9 @@ export class Plane {
 
     {
       const img = new Image();
-      img.src = this.domElement.getAttribute("data-normal-src")!;
+      img.src = this.domElement.getAttribute("data-src2")!;
       img.onload = () => {
-        this.uniforms.uNormal.value.image = img;
-      };
-    }
-
-    {
-      const img = new Image();
-      img.src = this.domElement.getAttribute("data-depth-src")!;
-      img.onload = () => {
-        this.uniforms.uDepth.value.image = img;
-      };
-    }
-
-    {
-      const img = new Image();
-      img.src = this.domElement.getAttribute("data-blurred-src")!;
-      img.onload = () => {
-        this.uniforms.uBlurred.value.image = img;
+        this.uniforms.uTexture2.value.image = img;
       };
     }
   }
