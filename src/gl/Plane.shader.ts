@@ -126,7 +126,6 @@ const fragmentHead = /*glsl*/ `
 
     uniform sampler2D uTexture;
     uniform sampler2D uTexture2;
-    uniform sampler2D uNoiseTexture;
     uniform sampler2D uDataTexture;
     uniform sampler2D uFlow;
 
@@ -328,7 +327,7 @@ export const demo6 = {
 
               float c = length(uv-mouse)+(1.-uHoverProgress);
               c = clamp(c, 0., 1.);
-              vec2 noise = texture2D(uNoiseTexture, uv * 10.0).xy * mix(0.02, 0.04, uHoverProgress);
+              vec2 noise = texture2D(uTexture2, uv * 10.0).xy * mix(0.02, 0.04, uHoverProgress);
               vec2 glassyUV = coverUV + noise * c;
               vec3 tex = texture2D(uTexture, glassyUV).rgb;
 

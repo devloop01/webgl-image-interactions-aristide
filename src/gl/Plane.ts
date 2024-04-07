@@ -50,8 +50,7 @@ export class Plane {
       uMouse: { value: [0, 0] },
       uLerpedMouse: { value: [0, 0] },
       uTexture: { value: new Texture(this.gl.ctx) },
-      uTexture2: { value: new Texture(this.gl.ctx) },
-      uNoiseTexture: {
+      uTexture2: {
         value: new Texture(this.gl.ctx, {
           wrapS: this.gl.ctx.REPEAT,
           wrapT: this.gl.ctx.REPEAT,
@@ -196,14 +195,6 @@ export class Plane {
       img.src = this.domElement.getAttribute("data-src2")!;
       img.onload = () => {
         this.uniforms.uTexture2.value.image = img;
-      };
-    }
-
-    {
-      const img = new Image();
-      img.src = "/images/rgba-noise-64x64.png";
-      img.onload = () => {
-        this.uniforms.uNoiseTexture.value.image = img;
       };
     }
   }
