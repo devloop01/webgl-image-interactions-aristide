@@ -26,7 +26,7 @@ export class App {
     this.addListeners();
 
     this.createGlObjects();
-    this.onResize();
+    this.handleResize();
     this.update();
   }
 
@@ -47,11 +47,26 @@ export class App {
     this.rafId = requestAnimationFrame(this.update.bind(this));
   }
 
-  onMouseMove(e: MouseEvent) {
-    this.gl.updateMouse(e.clientX, e.clientY);
+  handleTouchMove(event: PointerEvent | TouchEvent) {
+    event.preventDefault();
+
+    let x = 0,
+      y = 0;
+
+    if (event.type === "pointermove") {
+      const mouseEvent = event as PointerEvent;
+      x = mouseEvent.clientX;
+      y = mouseEvent.clientY;
+    } else if (event.type === "touchmove") {
+      const touchEvent = event as TouchEvent;
+      x = touchEvent.touches[0].clientX;
+      y = touchEvent.touches[0].clientY;
+    }
+
+    this.gl.updateMouse(x, y);
   }
 
-  onResize() {
+  handleResize() {
     this.gl.resize(window.innerWidth, window.innerHeight);
     this.glObjects.forEach((glObject) => {
       glObject.resize();
@@ -59,7 +74,8 @@ export class App {
   }
 
   addListeners() {
-    window.addEventListener("resize", this.onResize.bind(this));
-    window.addEventListener("mousemove", this.onMouseMove.bind(this));
+    window.addEventListener("resize", this.handleResize.bind(this));
+    window.addEventListener("pointermove", this.handleTouchMove.bind(this));
+    window.addEventListener("touchmove", this.handleTouchMove.bind(this), { passive: false });
   }
 }
