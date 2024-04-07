@@ -137,6 +137,8 @@ export class Plane {
   }
 
   updateDataTexture() {
+    if (!this.uniforms.uDataTexture) return;
+
     const data = this.uniforms.uDataTexture.value.image;
 
     for (let i = 0; i < data.length; i += 3) {
